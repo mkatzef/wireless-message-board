@@ -4,6 +4,7 @@
 #include <string.h>
 #include "TextScroll.h"
 #include "WifiCredentials.h"
+#include "ESP8266Communication.h"
 
 #define COMMAND_TIMEOUT_MILLIS 15000
 #define STRING_TIMEOUT_MILLIS 5
@@ -29,19 +30,7 @@ String MESSAGE_PREAMBLE = "?message=";
 
 char g_textScrollBuffer[TEXT_SCROLL_BUFFER_SIZE];
 
-// Sends given string to ESP8266, then waits until device starts responding, or timeout.
-uint8_t sendCommand(String command) {
-  espSerial.print(command + "\r\n");
-  
-  unsigned long endTime = millis() + COMMAND_TIMEOUT_MILLIS;
-  while (!espSerial.available()) {
-    if (millis() >= endTime) {
-      return 1;
-    }
-  }
 
-  return 0;
-}
 
 
 void clearBuffer(void) {
@@ -129,10 +118,8 @@ void setup(){
   Serial.setTimeout(STRING_TIMEOUT_MILLIS);
   espSerial.begin(BAUD_RATE_ESP);
   espSerial.setTimeout(STRING_TIMEOUT_MILLIS);
-
-  sendCommand("ATE0");
-  Serial.println(espSerial.readString());
-  Serial.println("Compact mode!");
+  
+  initESP8266(espSerial, espSerial, 256);
   
   sendCommand("AT+CWMODE=3");
   Serial.println(espSerial.readString());
