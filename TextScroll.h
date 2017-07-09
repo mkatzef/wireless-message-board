@@ -1,10 +1,12 @@
+#ifndef TextScroll_H_
+#define TextScroll_H_
+
 #include <stdlib.h>
 #include <stdbool.h>
 
 //Libraries for Dot Matrix
 #include <SPI.h>
 #include <DMD.h>
-#include <TimerOne.h>
 
 // Font
 #include <avr/pgmspace.h>
@@ -34,3 +36,4 @@ void stepDisplay(void);
 
 void flashDisplay(void);
 
+#endif /* #ifndef TextScroll_H_ */

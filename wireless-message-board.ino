@@ -31,8 +31,6 @@ String MESSAGE_PREAMBLE = "?message=";
 char g_textScrollBuffer[TEXT_SCROLL_BUFFER_SIZE];
 
 
-
-
 void clearBuffer(void) {
   while (espSerial.available()) {
     espSerial.read();
