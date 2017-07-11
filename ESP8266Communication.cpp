@@ -1,4 +1,12 @@
-
+/* 
+ * ESP8266Communication.cpp
+ * 
+ * A library to simplify the communication between an Arduino and ESP8266, designed
+ * around a single (given size) array for both input and output text.
+ * 
+ * Written by Marc Katzef
+ */
+ 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -7,35 +15,28 @@
 
 #include "ESP8266Communication.h"
 
-#define DEFAULT_RESEND_DELAY_MILLIS 50
-#define DEFAULT_DATA_BUFFER_SIZE 256
+char *g_dataBuffer; // The fundamental data array
+uint32_t g_dataBufferSize; // Size of the data array, in chars
 
-char *g_dataBuffer;
-uint32_t g_dataBufferSize;
-
-Stream *inputStreamESP;
-Stream *outputStreamESP;
-
+Stream *inputStreamESP; // The stream from which ESP8266 data (e.g. HTTP messages) is received
+Stream *outputStreamESP; // The stream to which ESP8266 data (e.g. AT commands) must be sent
 
 /*
  * Tests if data is available on the given input stream or timeout. If timeout
- * value is negative, will wait indefinitely.
- * 
- * Returns either:
- * STREAM_READY - data is available from the input stream.
- * STREAM_LISTEN_TIMEOUT - timeout was reached before data became available.
+ * value is negative, will wait indefinitely. Returns true if data is available,
+ * false if timeout was reached.
  */
-uint8_t waitForInput(Stream &inputStream, int32_t timeoutMillis) {
+bool waitForInput(Stream &inputStream, int32_t timeoutMillis) {
   bool canTimeout = timeoutMillis >= 0;
   uint32_t endTime = millis() + timeoutMillis;
   
   while (!inputStream.available()) {
     if (millis() >= endTime) {
-      return STREAM_LISTEN_TIMEOUT;
+      return false;
     }
   }
 
-  return STREAM_READY;
+  return true;
 }
 
 
@@ -55,8 +56,8 @@ uint8_t sendCommand(String command, int32_t timeoutMillis=DEFAULT_ESP_TIMEOUT_MI
   outputStreamESP->print(command);
   outputStreamESP->print("\r\n"); // Required to terminate command
   
-  uint8_t listenStatus = waitForInput(*inputStreamESP, timeoutMillis);
-  if (listenStatus == STREAM_LISTEN_TIMEOUT) {
+  bool listenStatus = waitForInput(*inputStreamESP, timeoutMillis);
+  if (!listenStatus) {
     return COMMAND_TIMEOUT;
   }
   // TODO
@@ -127,3 +128,4 @@ uint8_t initESP8266(Stream &inputStream, Stream &outputStream, uint32_t dataBuff
 
   return statusESP;
 }
+
